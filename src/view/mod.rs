@@ -3,24 +3,14 @@ use crate::{
     model::{CellModel, Model},
 };
 
-pub trait View<I, O, D, M: Model<D>>: Sized {
-    fn bind_into_controller(input_config: I) -> impl Controller<I, O, D, M, Self>;
-
-    fn render(&self) -> O;
+pub trait View<I, O>: Sized {
+    fn render(&self, input: I) -> O;
 }
 
 pub struct TestView;
 
-impl<'a> View<&'a str, String, String, CellModel<String>> for TestView {
-    fn bind_into_controller(
-        input_config: &'a str,
-    ) -> impl Controller<&'a str, String, String, CellModel<String>, Self> {
-        let model = CellModel::new(String::from(input_config));
-        let mut view = Self {};
-        TestController::new(model, view)
-    }
-
-    fn render(&self) -> String {
-        String::from("test")
+impl View<String, String> for TestView {
+    fn render(&self, input: String) -> String {
+        input
     }
 }

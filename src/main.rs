@@ -9,9 +9,11 @@ mod prelude;
 mod view;
 
 use clap::Parser;
+use std::rc::Rc;
 
 use crate::args::{CliArgs, Command};
-use crate::controller::HasView;
+use crate::controller::{Controller, TestController};
+use crate::model::{CellModel, Model};
 use crate::prelude::*;
 use crate::view::{TestView, View};
 
@@ -20,11 +22,11 @@ fn main() -> Result<()> {
 
     match &cli_args.command {
         Command::Fill(fill_args) => {
-            let test_view = TestView::bind_into_controller(&fill_args.template_file);
+            let model = CellModel::new(fill_args.template_file.clone());
+            let controller = TestController::new(model);
+            let view = TestView;
 
-            let output = test_view.view().render();
-
-            println!("{:?}", output);
+            println!("{:?}", controller.render_view(&view));
         }
     }
 

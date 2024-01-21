@@ -1,30 +1,31 @@
+use std::ops::Deref;
+use std::rc::Rc;
+
 use crate::{
     model::{CellModel, Model},
+    prelude::*,
     view::{TestView, View},
 };
 
-pub trait HasModel<D, M: Model<D>> {
+pub trait HasModel<D: Clone, M: Model<D>> {
     fn model(&self) -> &impl Model<D>;
 }
 
-pub trait HasView<I, O, D, M: Model<D>> {
-    fn view(&self) -> &impl View<I, O, D, M>;
-}
+pub trait Controller<D: Clone, M: Model<D>>: HasModel<D, M> + Sized {
+    fn render_view<I: From<D>, O, V: View<I, O>>(&self, view: &V) -> Result<O> {
+        let state = self.model().state()?;
 
-pub trait Controller<I, O, D, M: Model<D>, V: View<I, O, D, M>>:
-    HasView<I, O, D, M> + HasModel<D, M> + Sized
-{
-    fn new(model: M, view: V) -> Self;
+        Ok(view.render(state.into()))
+    }
 }
 
 pub struct TestController {
     model: CellModel<String>,
-    view: TestView,
 }
 
-impl<'a> HasView<&'a str, String, String, CellModel<String>> for TestController {
-    fn view(&self) -> &impl View<&'a str, String, String, CellModel<String>> {
-        &self.view
+impl TestController {
+    pub fn new(model: CellModel<String>) -> Self {
+        Self { model }
     }
 }
 
@@ -34,8 +35,4 @@ impl HasModel<String, CellModel<String>> for TestController {
     }
 }
 
-impl Controller<&str, String, String, CellModel<String>, TestView> for TestController {
-    fn new(model: CellModel<String>, view: TestView) -> Self {
-        Self { model, view }
-    }
-}
+impl Controller<String, CellModel<String>> for TestController {}
